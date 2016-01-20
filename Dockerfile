@@ -28,6 +28,11 @@ ENV TINI_SHA 066ad710107dc7ee05d3aa6e4974f01dc98f3888
 RUN curl -fL https://github.com/krallin/tini/releases/download/v0.5.0/tini-static -o /bin/tini && chmod +x /bin/tini \
   && echo "$TINI_SHA /bin/tini" | sha1sum -c -
 
+# install Jolokia
+RUN curl -fL https://github.com/rhuss/jolokia/releases/download/v1.3.2/jolokia-1.3.2-bin.tar.gz \
+    -o /usr/local/jolokia-1.3.2-bin.tar.gz && \
+    (cd /usr/local; tar zxf jolokia-1.3.2-bin.tar.gz)
+
 COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groovy
 
 ENV JENKINS_VERSION 1.632
@@ -39,13 +44,20 @@ RUN curl -fL http://mirrors.jenkins-ci.org/war/$JENKINS_VERSION/jenkins.war -o /
   && echo "$JENKINS_SHA /usr/share/jenkins/jenkins.war" | sha1sum -c -
 
 ENV JENKINS_UC https://updates.jenkins-ci.org
-RUN chown -R jenkins "$JENKINS_HOME" /usr/share/jenkins/ref
+RUN chown -R jenkins "$JENKINS_HOME" /usr/share/jenkins/ref /usr/local/jolokia-1.3.2
+
+# just in case Jolokia enjoys being executable
+RUN chmod 755 /usr/local/jolokia-1.3.2/*
 
 # for main web interface:
 EXPOSE 8080
 
 # will be used by attached slave agents:
 EXPOSE 50000
+
+# Jolokia (port number must match what's in jenkins.sh)
+EXPOSE 8778
+
 
 ENV COPY_REFERENCE_FILE_LOG $JENKINS_HOME/copy_reference_file.log
 
