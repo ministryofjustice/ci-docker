@@ -60,6 +60,8 @@ COPY jenkins.sh /usr/local/bin/jenkins.sh
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY plugins.txt /plugins.txt
 RUN plugins.sh /plugins.txt
+RUN apt-get -y install pip
+RUN pip install virtualenv
 
 # Jenkins home directory is a volume, so configuration and build history 
 # can be persisted and survive image upgrades
